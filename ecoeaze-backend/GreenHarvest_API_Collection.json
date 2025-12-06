@@ -1,0 +1,283 @@
+{
+  "info": {
+    "name": "GreenHarvest API",
+    "description": "API collection for testing GreenHarvest backend",
+    "version": "1.0.0"
+  },
+  "collections": [
+    {
+      "name": "Authentication",
+      "requests": [
+        {
+          "name": "Register Customer",
+          "method": "POST",
+          "url": "{{base_url}}/auth/register",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"name\": \"John Customer\",\n  \"email\": \"john.customer@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"customer\"\n}"
+          }
+        },
+        {
+          "name": "Register Farmer",
+          "method": "POST",
+          "url": "{{base_url}}/auth/register",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"name\": \"Jane Farmer\",\n  \"email\": \"jane.farmer@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"farmer\"\n}"
+          }
+        },
+        {
+          "name": "Login Customer",
+          "method": "POST",
+          "url": "{{base_url}}/auth/login",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"john.customer@example.com\",\n  \"password\": \"password123\"\n}"
+          }
+        },
+        {
+          "name": "Login Farmer",
+          "method": "POST",
+          "url": "{{base_url}}/auth/login",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"jane.farmer@example.com\",\n  \"password\": \"password123\"\n}"
+          }
+        },
+        {
+          "name": "Logout",
+          "method": "POST",
+          "url": "{{base_url}}/auth/logout",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "requests": [
+        {
+          "name": "Get All Products",
+          "method": "GET",
+          "url": "{{base_url}}/products"
+        },
+        {
+          "name": "Get Product by ID",
+          "method": "GET",
+          "url": "{{base_url}}/products/{{product_id}}"
+        },
+        {
+          "name": "Farmer - Get My Products",
+          "method": "GET",
+          "url": "{{base_url}}/farmers/products",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Farmer - Create Product",
+          "method": "POST",
+          "url": "{{base_url}}/farmers/products",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ],
+          "body": {
+            "type": "formdata",
+            "formdata": [
+              {
+                "key": "name",
+                "value": "Organic Tomatoes"
+              },
+              {
+                "key": "description",
+                "value": "Fresh organic tomatoes from local farm"
+              },
+              {
+                "key": "price",
+                "value": "45"
+              },
+              {
+                "key": "stock",
+                "value": "100"
+              },
+              {
+                "key": "unit",
+                "value": "kg"
+              },
+              {
+                "key": "category",
+                "value": "vegetables"
+              },
+              {
+                "key": "isOrganic",
+                "value": "true"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Farmer - Update Product",
+          "method": "PUT",
+          "url": "{{base_url}}/farmers/products/{{product_id}}",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"price\": 50,\n  \"stock\": 80\n}"
+          }
+        },
+        {
+          "name": "Farmer - Delete Product",
+          "method": "DELETE",
+          "url": "{{base_url}}/farmers/products/{{product_id}}",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "requests": [
+        {
+          "name": "Customer - Create Order",
+          "method": "POST",
+          "url": "{{base_url}}/orders",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{product_id}}\",\n      \"name\": \"Organic Tomatoes\",\n      \"price\": 45,\n      \"quantity\": 2\n    }\n  ],\n  \"phone\": \"9876543210\"\n}"
+          }
+        },
+        {
+          "name": "Customer - Get My Orders",
+          "method": "GET",
+          "url": "{{base_url}}/orders/my",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Farmer - Get My Orders",
+          "method": "GET",
+          "url": "{{base_url}}/farmers/orders",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ]
+        },
+        {
+          "name": "Farmer - Update Order Status",
+          "method": "PATCH",
+          "url": "{{base_url}}/orders/{{order_id}}/status",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"status\": \"confirmed\"\n}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "requests": [
+        {
+          "name": "Health Check",
+          "method": "GET",
+          "url": "{{base_url}}/health"
+        }
+      ]
+    }
+  ],
+  "environments": [
+    {
+      "name": "Development",
+      "variables": [
+        {
+          "name": "base_url",
+          "value": "http://localhost:5001/api"
+        },
+        {
+          "name": "access_token",
+          "value": ""
+        },
+        {
+          "name": "product_id",
+          "value": ""
+        },
+        {
+          "name": "order_id",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}
