@@ -39,6 +39,8 @@ interface UserDetails extends User {
   totalOrders?: number;
   totalProducts?: number;
 }
+
+interface Product {
   _id: string;
   name: string;
   price: number;
