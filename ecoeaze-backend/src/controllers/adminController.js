@@ -20,6 +20,121 @@ export const getAllUsers = async (req, res, next) => {
 };
 
 /**
+ * GET /api/admin/customers
+ * Get all customers with full credentials (email, phone, etc.)
+ */
+export const getAllCustomers = async (req, res, next) => {
+  try {
+    const customers = await User.find({ role: "customer" }).select(
+      "name email phone address createdAt"
+    );
+    return res.json({
+      success: true,
+      count: customers.length,
+      data: customers,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/admin/farmers
+ * Get all farmers with full credentials (email, phone, farm details, etc.)
+ */
+export const getAllFarmers = async (req, res, next) => {
+  try {
+    const farmers = await User.find({ role: "farmer" }).select(
+      "name email phone address createdAt"
+    );
+    return res.json({
+      success: true,
+      count: farmers.length,
+      data: farmers,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/admin/customers/:id
+ * Get single customer details
+ */
+export const getCustomerDetails = async (req, res, next) => {
+  try {
+    const customer = await User.findById(req.params.id).select(
+      "name email phone address role createdAt updatedAt"
+    );
+    
+    if (!customer || customer.role !== "customer") {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    // Get customer orders
+    const orders = await Order.find({ user: customer._id }).select(
+      "orderId items totalPrice status createdAt"
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        customer,
+        orders,
+        totalOrders: orders.length,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/admin/farmers/:id
+ * Get single farmer details
+ */
+export const getFarmerDetails = async (req, res, next) => {
+  try {
+    const farmer = await User.findById(req.params.id).select(
+      "name email phone address role createdAt updatedAt"
+    );
+    
+    if (!farmer || farmer.role !== "farmer") {
+      return res.status(404).json({
+        success: false,
+        message: "Farmer not found",
+      });
+    }
+
+    // Get farmer products
+    const products = await Product.find({ farmer: farmer._id }).select(
+      "name price quantity category createdAt"
+    );
+
+    // Get farmer sales (orders containing farmer's products)
+    const farmerOrders = await Order.find({
+      "items.farmer": farmer._id,
+    }).select("orderId items totalPrice status createdAt");
+
+    return res.json({
+      success: true,
+      data: {
+        farmer,
+        products,
+        totalProducts: products.length,
+        orders: farmerOrders,
+        totalOrders: farmerOrders.length,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * PUT /api/admin/users/:id/role
  * Body: { role }
  */

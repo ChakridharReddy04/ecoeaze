@@ -61,6 +61,36 @@ export const login = async (req, res, next) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ success: false, message: "Invalid login" });
 
+    // ADMIN LOGIN: Skip OTP, directly issue tokens
+    if (user.role === "admin") {
+      const { accessToken, refreshToken } = generateAuthTokens(user);
+
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 1000,
+      });
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      console.log(`✅ Admin login successful: ${user.email}`);
+
+      return res.json({
+        success: true,
+        message: "Admin login successful",
+        user: { id: user._id, name: user.name, email: user.email, role: user.role },
+        accessToken,
+        refreshToken
+      });
+    }
+
+    // CUSTOMER LOGIN: Send OTP
     // Generate OTP and send to email
     const otp = generateOTP();
     const hashedOTP = hashOTP(otp);

@@ -15,11 +15,30 @@ interface User {
   _id: string;
   name: string;
   email: string;
+  phone?: string;
+  address?: string;
   role: string;
   createdAt: string;
 }
 
-interface Product {
+interface UserDetails extends User {
+  orders?: Array<{
+    _id: string;
+    orderId: string;
+    items: any[];
+    totalPrice: number;
+    status: string;
+    createdAt: string;
+  }>;
+  products?: Array<{
+    _id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+  totalOrders?: number;
+  totalProducts?: number;
+}
   _id: string;
   name: string;
   price: number;
@@ -62,6 +81,8 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 const AdminPortal = () => {
   const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   // Fetch users
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
@@ -163,6 +184,18 @@ const AdminPortal = () => {
 
   const handleUpdateRole = (userId: string, role: string) => {
     updateUserRoleMutation.mutate({ userId, role });
+  };
+
+  // Fetch user details
+  const handleViewDetails = async (userId: string, role: string) => {
+    try {
+      const endpoint = role === "farmer" ? `/admin/farmers/${userId}` : `/admin/customers/${userId}`;
+      const response = await apiFetch<{ data: UserDetails }>(endpoint);
+      setSelectedUser(response.data);
+      setShowDetails(true);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to load user details");
+    }
   };
 
   // Delete user mutation
@@ -561,7 +594,14 @@ const AdminPortal = () => {
                               </SelectContent>
                             </Select>
                           </td>
-                          <td className="py-3">
+                          <td className="py-3 flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewDetails(user._id, user.role)}
+                            >
+                              View Details
+                            </Button>
                             {user.role !== "admin" && (
                               <Button
                                 variant="destructive"
@@ -571,9 +611,6 @@ const AdminPortal = () => {
                               >
                                 Delete
                               </Button>
-                            )}
-                            {user.role === "admin" && (
-                              <div className="text-sm text-muted-foreground">admin</div>
                             )}
                           </td>
                         </tr>
@@ -674,6 +711,106 @@ const AdminPortal = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* User Details Modal */}
+      {showDetails && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>{selectedUser.name}</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">{selectedUser.role.toUpperCase()}</p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowDetails(false);
+                  setSelectedUser(null);
+                }}
+              >
+                Close
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Login Credentials */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="font-semibold mb-3">Login Credentials</h3>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-mono text-sm">{selectedUser.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="font-mono text-sm">{selectedUser.phone || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Address</p>
+                    <p className="font-mono text-sm">{selectedUser.address || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* User Info */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">User Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">User ID</p>
+                    <p className="font-mono text-xs">{selectedUser._id}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Role</p>
+                    <Badge className="mt-1">{selectedUser.role}</Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Joined</p>
+                    <p className="text-sm">{new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Orders (for customers) */}
+              {selectedUser.role === "customer" && selectedUser.orders && (
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold mb-3">Orders ({selectedUser.totalOrders || 0})</h3>
+                  {selectedUser.orders.length > 0 ? (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {selectedUser.orders.map((order) => (
+                        <div key={order._id} className="bg-gray-50 p-2 rounded text-sm">
+                          <p><span className="font-mono">{order.orderId}</span> - {new Date(order.createdAt).toLocaleDateString()}</p>
+                          <p className="text-muted-foreground">Amount: ₹{order.totalPrice} | Status: <Badge variant="outline" className="ml-1">{order.status}</Badge></p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No orders yet</p>
+                  )}
+                </div>
+              )}
+
+              {/* Products (for farmers) */}
+              {selectedUser.role === "farmer" && selectedUser.products && (
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold mb-3">Products ({selectedUser.totalProducts || 0})</h3>
+                  {selectedUser.products.length > 0 ? (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {selectedUser.products.map((product) => (
+                        <div key={product._id} className="bg-gray-50 p-2 rounded text-sm">
+                          <p className="font-medium">{product.name}</p>
+                          <p className="text-muted-foreground">₹{product.price} | Stock: {product.quantity}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No products yet</p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

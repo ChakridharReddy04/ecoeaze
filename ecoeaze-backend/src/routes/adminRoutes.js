@@ -1,6 +1,10 @@
 import express from "express";
 import {
   getAllUsers,
+  getAllCustomers,
+  getAllFarmers,
+  getCustomerDetails,
+  getFarmerDetails,
   updateUserRole,
   createUser,
   deleteUser,
@@ -22,6 +26,18 @@ const router = express.Router();
 
 // GET /api/admin/users
 router.get("/users", requireAuth, requireAdmin, getAllUsers);
+
+// GET /api/admin/customers - Get all customers with credentials
+router.get("/customers", requireAuth, requireAdmin, getAllCustomers);
+
+// GET /api/admin/farmers - Get all farmers with credentials
+router.get("/farmers", requireAuth, requireAdmin, getAllFarmers);
+
+// GET /api/admin/customers/:id - Get single customer details
+router.get("/customers/:id", requireAuth, requireAdmin, getCustomerDetails);
+
+// GET /api/admin/farmers/:id - Get single farmer details
+router.get("/farmers/:id", requireAuth, requireAdmin, getFarmerDetails);
 
 // POST /api/admin/users - create new user (customer or farmer)
 router.post("/users", requireAuth, requireAdmin, createUser);

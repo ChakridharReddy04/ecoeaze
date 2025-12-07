@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd ecoeaze-frontend && npm run build",
+  "outputDirectory": "ecoeaze-frontend/dist",
+  "installCommand": "cd ecoeaze-frontend && npm install",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
